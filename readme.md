@@ -16,10 +16,6 @@ Just `make` and run the executable! There is no `make install` rule yet...
 
 Options
 -------
-Simple Notification Daemon
-Usage:	./sind [OPTIONS]
-Prints freedesktop notifications to stdout
-
 Options:
 	-h, --help		Show this message
 	-l, --lines=		If set to $LINES, will give an curses-like output in your terminal.

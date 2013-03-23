@@ -24,7 +24,7 @@ char* g_seperator = " : ";
 static void print_help(char* path) {
     fprintf(stdout,
     "Simple Notification Daemon\n"
-    "Usage:\t%s [-t TIME]\n"
+    "Usage:\t%s [OPTIONS]\n"
     "Prints freedesktop notifications to stdout\n"
     "\n"
     "Options:\n"

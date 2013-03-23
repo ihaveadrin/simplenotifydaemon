@@ -7,6 +7,7 @@
 
 #include "list.h"
 #include "init.h"
+#include "format.h"
 
 struct ListHead g_text = { .head = NULL, .changed = false };
 
@@ -24,16 +25,32 @@ static NotifyLine* list_new(const char* app, const char* sum, const char* body, 
     if (!line) return NULL;
 
     // New string. A little bit of padding, to be safe
-    line->line = malloc(
-        (sizeof(char) * strlen(app))
-    +   (sizeof(char) * strlen(g_seperator))
-    +   (sizeof(char) * strlen(sum))
-    +   (sizeof(char) * strlen(g_seperator))
-    +   (sizeof(char) * strlen(body))
-    +   (sizeof(char) * strlen(g_seperator)));
+    size_t string_size = g_format_container->min_size
+    + ((g_format_container->app) ? (sizeof(char) * strlen(app)) : 0)
+    + ((g_format_container->sum) ? (sizeof(char) * strlen(sum)) : 0)
+    + ((g_format_container->bod) ? (sizeof(char) * strlen(body)) : 0);
+    line->line = malloc(string_size);
     if (!line->line) return NULL;
 
-    sprintf(line->line, "%s%s%s%s%s", app, g_seperator, sum,  g_seperator, body);
+    sprintf(line->line, "\0");
+    for (int x = 0; x < g_format_container->len; x++) {
+        if (g_format_container->array[x]->is_seperator) {
+            sprintf(line->line + strlen(line->line), "%s",
+            g_format_container->array[x]->content.seperator);
+        } else {
+            switch (g_format_container->array[x]->content.specifier) {
+                case SEP_APP:
+                    sprintf(line->line + strlen(line->line), "%s", app);
+                    break;
+                case SEP_SUMMARY:
+                    sprintf(line->line + strlen(line->line), "%s", sum);
+                    break;
+                case SEP_BODY:
+                    sprintf(line->line + strlen(line->line), "%s", body);
+                    break;
+            }
+        }
+    }
 
     // Insert expiration date
     if (expires > -1)  line->expires = (unsigned long)expires + current_time();

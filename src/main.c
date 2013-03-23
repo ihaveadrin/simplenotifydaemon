@@ -3,6 +3,7 @@
 #include "dbus.h"
 #include "list.h"
 #include "init.h"
+#include "format.h"
 
 void get_args(int argc, char** argv);
 int main (int argc, char** argv) {
@@ -38,8 +39,9 @@ int main (int argc, char** argv) {
         }
     }
 
-    // Free whole list
+    // Free alloced memory
     list_destroy();
+    format_clean();
 
     // Free list
     return success;

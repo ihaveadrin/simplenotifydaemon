@@ -7,7 +7,7 @@ dzenfg=white
 x=2540
 y=48
 
-seperator=' === '
+format='%a ==== %s: %b'
 pending='^fg(red)!
 ^fg'"$dzenfg"
 buttonwidth=20
@@ -18,10 +18,10 @@ updateinterval=500
 timeout=10000
 
 line_height=16
-lines=2
+lines=3
 
 ./sind -l $(( $lines + 1 )) -n '^uncollapse()' -p "^tw()$pending" \
--d -s "$seperator" \
+-d -f "$format" \
 -r "^tw()
 ^collapse()" \
 -u "$updateinterval" -t "$timeout" \

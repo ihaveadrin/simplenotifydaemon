@@ -16,6 +16,7 @@ Just `make` and run the executable! There is no `make install` rule yet...
 
 Options
 -------
+```
 Options:
 	-h, --help		Show this message
 	-l, --lines=		If set to $LINES, will give an curses-like output in your terminal.
@@ -33,6 +34,7 @@ Format:
 		%a	the name of the application sending the notification
 		%s	the summary of the notification
 		%b	the body of the notification
+```
 
 License
 -------

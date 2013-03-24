@@ -27,12 +27,12 @@ font="-*-fixed-medium-*-*-*-12-*-*-*-*-*-*-*"
 dzenbg=black
 
 # The color of slave window text
-dzenfg=white
+dzenfg='#222222'
 
 # The bg of the slave window text, as
 #   well as the bg of the button when
 #   you have pending notifications
-activebgcolor='#222222'
+activebgcolor='#aaffdd'
 
 # The color of the notification icon
 notify_color=red
@@ -93,7 +93,7 @@ pending='^bg('"$activebgcolor"')^fg('"$notify_color"') '\
 
 
 ### Execute! ################################
-./sind -l $(( $lines + 1 )) \
+sind -l $(( $lines + 1 )) \
 -n '^uncollapse()'"$border" \
 -p "^tw()$pending" \
 -d -f "$format" \

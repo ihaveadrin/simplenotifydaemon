@@ -123,6 +123,16 @@ void list_destroy() {
     }
 }
 
+static int list_count() {
+    int ret = 0;
+    NotifyLine* needle = g_text.head;
+    while (needle) {
+        needle = needle->next;
+        ret++;
+    }
+    return ret;
+}
+
 // Checks for zombies/removes them/prints if new/deleted lines
 void list_walk() {
     unsigned long time = current_time();
@@ -158,6 +168,10 @@ void list_walk() {
     current_line = g_text.head;
     if (g_lines > 0) {
         // If using $LINES
+        int to_skip = list_count() - g_lines - for_inc + 2;
+        for (int x = 0; x < to_skip; x++) {
+            current_line = current_line->next;
+        }
         for (int x = 0; x < g_lines - for_inc; x++) {
             if (current_line) {
                 // Print queue

@@ -1,18 +1,24 @@
-Simple Notification Daemon
-==========================
+SiND -- Simple Notification Daemon
+==================================
 Prints freedesktop notifications to stdout
 
-Can print notifications in a fix terminal, like an ncurses program.
+Can print notifications in a fixed terminal, like an ncurses program.
 Can be piped to dzen2 for popdown notifications (see dzen.sh).
 Or can just print to stdout plainly.
 
-It relies only on libdbus (almost up to freedesktop spec), libc
-and a handful of POSIX functions.
+It relies only on libdbus and gcc to build.
 
 Building & Usage
 ----------------
-Just `make` and run the executable! There is no `make install` rule yet...
+Building:
 
+    $ make && sudo make install
+
+Usage:
+
+    $ sind [OPTIONS]
+
+Pretty easy!
 
 Options
 -------
@@ -34,6 +40,7 @@ Format:
 		%a	the name of the application sending the notification
 		%s	the summary of the notification
 		%b	the body of the notification
+		%i	the id of the notification
 ```
 
 License

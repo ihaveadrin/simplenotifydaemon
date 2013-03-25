@@ -71,6 +71,7 @@ bool make_format(char* string) {
                     SPECASE('a',g_format_container->app,SEP_APP)
                     SPECASE('s',g_format_container->sum,SEP_SUMMARY)
                     SPECASE('b',g_format_container->bod,SEP_BODY)
+                    SPECASE('i',g_format_container->id,SEP_ID)
                     default:
                         free(g_format_container->array[g_format_container->len]);
                         return false;

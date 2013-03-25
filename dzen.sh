@@ -75,7 +75,7 @@ timeout=10000
 lines=3
 
 # The format of each notification (see sind -h)
-userformat='%a: %s -- %b'
+userformat='%i -- %a : %s -- %b'
 
 
 

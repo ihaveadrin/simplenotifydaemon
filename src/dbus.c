@@ -35,14 +35,13 @@ static bool notify(DBusMessage* msg) {
         dbus_message_iter_next( &args );
     }
 
-    if ((nid == 0)
-    ||  !list_update(appname, summary, body, expires, nid, false)) {
+    if (nid == 0) {
         g_index++;
         if (!list_append(appname, summary, body, expires, g_index)) {
             return false;
         }
         nid = g_index;
-    }
+    } else list_update(appname, summary, body, nid, false);
 
     // Send reply
     DBusMessage* reply = dbus_message_new_method_return(msg);
@@ -80,24 +79,44 @@ static void getcapabilities(DBusMessage* msg) {
     dbus_array_reply(msg, g_capabilities);
 }
 
+static void closenotification(DBusMessage* msg) {
+    DBusError* geterror = NULL;
+    dbus_uint32_t nid;
+    if (!dbus_message_get_args(msg, geterror,
+        DBUS_TYPE_UINT32, &nid,
+        DBUS_TYPE_INVALID)
+    ) {
+        if (dbus_error_is_set(geterror)) {
+            dbus_error_free(geterror);
+        }
+        return;
+    }
+    list_update(NULL,NULL,NULL,nid,true);
+}
+
 bool handle_message(DBusMessage* msg) {
     if (
-    dbus_message_is_method_call(msg,
-    "org.freedesktop.Notifications", "Notify")
+        dbus_message_is_method_call(msg,
+        "org.freedesktop.Notifications", "Notify")
     ) {
         if (!notify(msg)) {
             return false;
         }
     } else if (
-    dbus_message_is_method_call(msg,
-    "org.freedesktop.Notifications", "GetServerInformation")
+        dbus_message_is_method_call(msg,
+        "org.freedesktop.Notifications", "GetServerInformation")
     ) {
         getserverinfo(msg);
     } else if (
-    dbus_message_is_method_call(msg,
-    "org.freedesktop.Notifications", "GetCapabilities")
+        dbus_message_is_method_call(msg,
+        "org.freedesktop.Notifications", "GetCapabilities")
     ) {
         getcapabilities(msg);
+    } else if (
+        dbus_message_is_method_call(msg,
+        "org.freedesktop.Notifications", "CloseNotification")
+    ) {
+        closenotification(msg);
     }
 
     dbus_message_unref(msg);
@@ -110,8 +129,11 @@ void signal_notificationclose(dbus_uint32_t nid, dbus_uint32_t reason) {
     DBusMessage* signal = dbus_message_new_signal(
         "/org/freedesktop/Notifications/NotificationClosed",
         "org.freedesktop.Notifications.NotificationClosed",
-        "org.freedesktop.Notifications.NotificationClosed");
-    if ((dbus_message_append_args(signal, DBUS_TYPE_UINT32, nid, DBUS_TYPE_UINT32, reason))
+        "NotificationClosed");
+    if ((dbus_message_append_args(signal,
+        DBUS_TYPE_UINT32, &nid,
+        DBUS_TYPE_UINT32, &reason,
+        DBUS_TYPE_INVALID))
     &&  (dbus_connection_send(g_conn, signal, NULL))) {
         dbus_message_unref(signal);
     }

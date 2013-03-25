@@ -7,6 +7,7 @@ enum {
     SEP_APP,
     SEP_SUMMARY,
     SEP_BODY,
+    SEP_ID,
 };
 
 typedef struct _OutputFormat {
@@ -24,6 +25,7 @@ typedef struct _FormatContainer {
     bool app;
     bool sum;
     bool bod;
+    bool id;
 } FormatContainer;
 
 extern FormatContainer* g_format_container;

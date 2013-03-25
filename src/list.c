@@ -19,7 +19,7 @@ unsigned long current_time() {
     return (tv.tv_sec * 1000) + (tv.tv_usec / 1000);
 }
 
-static bool list_make_line_string(char** dest, const char* app, const char* sum, const char* body) {
+static bool list_make_line_string(char** dest, const char* app, const char* sum, const char* body, dbus_int32_t nid) {
     // New string. A little bit of padding, to be safe
     size_t string_size = g_format_container->min_size
     + ((g_format_container->app) ? (sizeof(char) * strlen(app)) : 0)
@@ -44,6 +44,9 @@ static bool list_make_line_string(char** dest, const char* app, const char* sum,
                 case SEP_BODY:
                     sprintf(*dest + strlen(*dest), "%s", body);
                     break;
+                case SEP_ID:
+                    sprintf(*dest + strlen(*dest), "%lu", nid);
+                    break;
             }
         }
     }
@@ -57,7 +60,7 @@ static NotifyLine* list_new(const char* app, const char* sum, const char* body, 
     if (!line) return NULL;
 
     // Make line
-    if (!list_make_line_string(&line->line, app, sum, body)) {
+    if (!list_make_line_string(&line->line, app, sum, body, nid)) {
         return NULL;
     }
 
@@ -70,6 +73,9 @@ static NotifyLine* list_new(const char* app, const char* sum, const char* body, 
 
     // Always appended
     line->next = NULL;
+
+    //
+    line->deleted = false;
 
     return line;
 }
@@ -92,7 +98,7 @@ static void list_add(NotifyLine* line) {
 }
 
 // Updates a node
-bool list_update(const char* app, const char* sum, const char* body, dbus_int32_t expires, dbus_uint32_t nid, bool to_delete) {
+bool list_update(const char* app, const char* sum, const char* body, dbus_uint32_t nid, bool to_delete) {
     bool found = false;
     NotifyLine* current_line = g_text.head;
     while (current_line) {
@@ -105,10 +111,11 @@ bool list_update(const char* app, const char* sum, const char* body, dbus_int32_
     if (found) {
         if (!to_delete) {
             free(current_line->line);
-            list_make_line_string(&current_line->line, app, sum, body);
+            list_make_line_string(&current_line->line, app, sum, body, nid);
             g_text.changed = true; // Force update
         } else {
             current_line->expires = current_time();
+            current_line->deleted = false;
             g_text.changed = true; // Force update
         }
         return true;
@@ -179,7 +186,7 @@ void list_walk() {
     // Find zombies
     while (current_line) {
         if (current_line->expires < time) {
-            signal_notificationclose(current_line->nid, 1);
+            signal_notificationclose(current_line->nid, (current_line->deleted)?3:1);
             to_chopping_block = current_line;
             current_line = current_line->next;
             list_remove(to_chopping_block);

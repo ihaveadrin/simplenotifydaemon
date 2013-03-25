@@ -6,9 +6,10 @@
 
 static char* g_server_info[] = {"SiND", "Tylo", "0.1", "1.2", NULL};
 static char* g_capabilities[] = {"body", NULL};
-static dbus_uint32_t g_index;
+static dbus_uint32_t g_index = 0;
+DBusConnection* g_conn = NULL;
 
-static bool notify(DBusMessage* msg, DBusConnection* conn) {
+static bool notify(DBusMessage* msg) {
     // Get message contents
     DBusMessageIter args;
     const char *appname;
@@ -25,7 +26,7 @@ static bool notify(DBusMessage* msg, DBusConnection* conn) {
             case 1: to_fill = &nid; break;
             case 3: to_fill = &summary; break;
             case 4: to_fill = &body; break;
-            case 8: to_fill = &expires; break;
+            case 7: to_fill = &expires; break;
             default: to_fill = NULL; break;
         }
         if (to_fill) {
@@ -34,23 +35,26 @@ static bool notify(DBusMessage* msg, DBusConnection* conn) {
         dbus_message_iter_next( &args );
     }
 
-    if (!list_append(appname, summary, body, expires)) {
-        return false;
+    if ((nid == 0)
+    ||  !list_update(appname, summary, body, expires, nid, false)) {
+        g_index++;
+        if (!list_append(appname, summary, body, expires, g_index)) {
+            return false;
+        }
+        nid = g_index;
     }
 
     // Send reply
-    g_index++;
     DBusMessage* reply = dbus_message_new_method_return(msg);
     dbus_message_iter_init_append(reply, &args);
-    if (!dbus_message_iter_append_basic(&args, DBUS_TYPE_UINT32, &nid)
-    ||  !dbus_connection_send(conn, reply, &g_index)) {
-        return true;
+    if (dbus_message_iter_append_basic(&args, DBUS_TYPE_UINT32, &nid)) {
+        dbus_connection_send(g_conn, reply, &g_index);
     }
     dbus_message_unref(reply);
     return true;
 }
 
-static void dbus_array_reply(DBusMessage* msg, DBusConnection* conn, char* array[]) {
+static void dbus_array_reply(DBusMessage* msg, char* array[]) {
     DBusMessage* reply = dbus_message_new_method_return(msg);
     DBusMessageIter args;
 
@@ -61,48 +65,59 @@ static void dbus_array_reply(DBusMessage* msg, DBusConnection* conn, char* array
             success = false;
         }
     }
-    if (success && dbus_connection_send(conn, reply, &g_index)) {
+    if (success && dbus_connection_send(g_conn, reply, &g_index)) {
         dbus_message_unref(reply);
     }
 }
 
-static void getserverinfo(DBusMessage* msg, DBusConnection* conn) {
+static void getserverinfo(DBusMessage* msg) {
     g_index++;
-    dbus_array_reply(msg, conn, g_server_info);
+    dbus_array_reply(msg, g_server_info);
 }
 
-static void getcapabilities(DBusMessage* msg, DBusConnection* conn) {
+static void getcapabilities(DBusMessage* msg) {
     g_index++;
-    dbus_array_reply(msg, conn, g_capabilities);
+    dbus_array_reply(msg, g_capabilities);
 }
 
-bool handle_message(DBusMessage* msg, DBusConnection* connection) {
+bool handle_message(DBusMessage* msg) {
     if (
     dbus_message_is_method_call(msg,
     "org.freedesktop.Notifications", "Notify")
     ) {
-        if (!notify(msg, connection)) {
+        if (!notify(msg)) {
             return false;
         }
     } else if (
     dbus_message_is_method_call(msg,
     "org.freedesktop.Notifications", "GetServerInformation")
     ) {
-        getserverinfo(msg, connection);
+        getserverinfo(msg);
     } else if (
     dbus_message_is_method_call(msg,
     "org.freedesktop.Notifications", "GetCapabilities")
     ) {
-        getcapabilities(msg, connection);
+        getcapabilities(msg);
     }
 
     dbus_message_unref(msg);
-    dbus_connection_flush(connection);
+    dbus_connection_flush(g_conn);
 
     return true;
 }
 
-DBusConnection* setup_debus() {
+void signal_notificationclose(dbus_uint32_t nid, dbus_uint32_t reason) {
+    DBusMessage* signal = dbus_message_new_signal(
+        "/org/freedesktop/Notifications/NotificationClosed",
+        "org.freedesktop.Notifications.NotificationClosed",
+        "org.freedesktop.Notifications.NotificationClosed");
+    if ((dbus_message_append_args(signal, DBUS_TYPE_UINT32, nid, DBUS_TYPE_UINT32, reason))
+    &&  (dbus_connection_send(g_conn, signal, NULL))) {
+        dbus_message_unref(signal);
+    }
+}
+
+bool setup_debus() {
     DBusConnection* connection;
     // Set up error structure
     DBusError dbus_error;
@@ -114,10 +129,10 @@ DBusConnection* setup_debus() {
     if (dbus_error_is_set(err)) {
         fprintf(stderr, "%s\n", err->message);
         dbus_error_free(err);
-        return NULL;
+        return false;
     }
     if (!connection) {
-        return NULL;
+        return false;
     }
 
     // Try to register as notification daemon
@@ -126,14 +141,14 @@ DBusConnection* setup_debus() {
     if (dbus_error_is_set(err)) {
         fprintf(stderr, "%s\n", err->message);
         dbus_error_free(err);
-        return NULL;
+        return false;
     }
     if (DBUS_REQUEST_NAME_REPLY_PRIMARY_OWNER != server_success) {
         fprintf(stderr, "There is a notification daemon already running!");
-        return NULL;
+        return false;
     }
 
     dbus_error_free(err);
-
-    return connection;
+    g_conn = connection;
+    return true;
 }

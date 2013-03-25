@@ -8,6 +8,7 @@ struct _NotifyLine;
 typedef struct _NotifyLine {
     char* line;                 // What the line says
     unsigned long expires;      // The expiration date of the line
+    dbus_uint32_t nid;          // The ID of the notification
     struct _NotifyLine* next;   // The next line on the list
 } NotifyLine;
 
@@ -19,10 +20,12 @@ struct ListHead {
 };
 
 // Adds a line to the list
-bool list_append(const char* app, const char* sum, const char* body, dbus_int32_t expires);
+bool list_append(const char* app, const char* sum, const char* body, dbus_int32_t expires, dbus_uint32_t nid);
 // Checks for zombies/removes them/prints if new/deleted lines
 void list_walk();
 // Free whole list
 void list_destroy();
+// Search for matching nid, if it exists, update that line
+bool list_update(const char* app, const char* sum, const char* body, dbus_int32_t expires, dbus_uint32_t nid, bool to_delete);
 
 #endif

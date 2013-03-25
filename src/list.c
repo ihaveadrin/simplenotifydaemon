@@ -8,6 +8,7 @@
 #include "list.h"
 #include "init.h"
 #include "format.h"
+#include "dbus.h"
 
 struct ListHead g_text = { .head = NULL, .changed = false };
 
@@ -18,43 +19,54 @@ unsigned long current_time() {
     return (tv.tv_sec * 1000) + (tv.tv_usec / 1000);
 }
 
-// Allocate new node
-static NotifyLine* list_new(const char* app, const char* sum, const char* body, dbus_int32_t expires) {
-    // New node
-    NotifyLine* line = malloc(sizeof(NotifyLine));
-    if (!line) return NULL;
-
+static bool list_make_line_string(char** dest, const char* app, const char* sum, const char* body) {
     // New string. A little bit of padding, to be safe
     size_t string_size = g_format_container->min_size
     + ((g_format_container->app) ? (sizeof(char) * strlen(app)) : 0)
     + ((g_format_container->sum) ? (sizeof(char) * strlen(sum)) : 0)
     + ((g_format_container->bod) ? (sizeof(char) * strlen(body)) : 0);
-    line->line = malloc(string_size);
-    if (!line->line) return NULL;
+    *dest = malloc(string_size);
+    if (!(*dest)) return false;
 
-    sprintf(line->line, "\0");
+    sprintf(*dest, "\0");
     for (int x = 0; x < g_format_container->len; x++) {
         if (g_format_container->array[x]->is_seperator) {
-            sprintf(line->line + strlen(line->line), "%s",
+            sprintf(*dest + strlen(*dest), "%s",
             g_format_container->array[x]->content.seperator);
         } else {
             switch (g_format_container->array[x]->content.specifier) {
                 case SEP_APP:
-                    sprintf(line->line + strlen(line->line), "%s", app);
+                    sprintf(*dest + strlen(*dest), "%s", app);
                     break;
                 case SEP_SUMMARY:
-                    sprintf(line->line + strlen(line->line), "%s", sum);
+                    sprintf(*dest + strlen(*dest), "%s", sum);
                     break;
                 case SEP_BODY:
-                    sprintf(line->line + strlen(line->line), "%s", body);
+                    sprintf(*dest + strlen(*dest), "%s", body);
                     break;
             }
         }
+    }
+    return true;
+}
+
+// Allocate new node
+static NotifyLine* list_new(const char* app, const char* sum, const char* body, dbus_int32_t expires, dbus_uint32_t nid) {
+    // New node
+    NotifyLine* line = malloc(sizeof(NotifyLine));
+    if (!line) return NULL;
+
+    // Make line
+    if (!list_make_line_string(&line->line, app, sum, body)) {
+        return NULL;
     }
 
     // Insert expiration date
     if (expires > -1)  line->expires = (unsigned long)expires + current_time();
     else line->expires = current_time() + g_sleep_time;
+
+    // Insert ID
+    line->nid = nid;
 
     // Always appended
     line->next = NULL;
@@ -79,9 +91,34 @@ static void list_add(NotifyLine* line) {
     return;
 }
 
+// Updates a node
+bool list_update(const char* app, const char* sum, const char* body, dbus_int32_t expires, dbus_uint32_t nid, bool to_delete) {
+    bool found = false;
+    NotifyLine* current_line = g_text.head;
+    while (current_line) {
+        if (current_line->nid == nid) {
+            found = true;
+            break;
+        }
+        current_line = current_line->next;
+    }
+    if (found) {
+        if (!to_delete) {
+            free(current_line->line);
+            list_make_line_string(&current_line->line, app, sum, body);
+            g_text.changed = true; // Force update
+        } else {
+            current_line->expires = current_time();
+            g_text.changed = true; // Force update
+        }
+        return true;
+    }
+    return false;
+}
+
 // Makes a new node and appends it
-bool list_append(const char* app, const char* sum, const char* body, dbus_int32_t expires) {
-    NotifyLine* line = list_new(app, sum, body, expires);
+bool list_append(const char* app, const char* sum, const char* body, dbus_int32_t expires, dbus_uint32_t nid) {
+    NotifyLine* line = list_new(app, sum, body, expires, nid);
     if (!line) {
         return false;
     }
@@ -142,6 +179,7 @@ void list_walk() {
     // Find zombies
     while (current_line) {
         if (current_line->expires < time) {
+            signal_notificationclose(current_line->nid, 1);
             to_chopping_block = current_line;
             current_line = current_line->next;
             list_remove(to_chopping_block);

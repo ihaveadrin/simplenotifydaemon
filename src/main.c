@@ -10,8 +10,7 @@ int main (int argc, char** argv) {
     get_args(argc, argv);
 
     // Set up dbus connection
-    DBusConnection* connection;
-    if ((connection = setup_debus(connection)) == NULL) {
+    if (!setup_debus()) {
         return EXIT_FAILURE;
     }
 
@@ -23,8 +22,8 @@ int main (int argc, char** argv) {
         list_walk();
 
         // Get messages
-        dbus_connection_read_write(connection, 0); //Non-blocking
-        msg = dbus_connection_pop_message(connection); //Fetch messages
+        dbus_connection_read_write(g_conn, 0); //Non-blocking
+        msg = dbus_connection_pop_message(g_conn); //Fetch messages
 
         if (!msg) {
             // If we haven't gotten any messages, sleep.
@@ -32,7 +31,7 @@ int main (int argc, char** argv) {
             continue;
         }
 
-        if (!handle_message(msg, connection)) {
+        if (!handle_message(msg)) {
             // Otherwise, handle them
             success = EXIT_FAILURE;
             break;

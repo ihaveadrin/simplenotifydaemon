@@ -4,7 +4,8 @@
 #include "dbus.h"
 #include "list.h"
 
-static char* g_server_info[4] = {"snd", "snd", "2013", "2013"};
+static char* g_server_info[] = {"SiND", "Tylo", "0.1", "1.2", NULL};
+static char* g_capabilities[] = {"body", NULL};
 static dbus_uint32_t g_index;
 
 static bool notify(DBusMessage* msg, DBusConnection* conn) {
@@ -49,19 +50,30 @@ static bool notify(DBusMessage* msg, DBusConnection* conn) {
     return true;
 }
 
-static void getserverinfo(DBusMessage* msg, DBusConnection* conn) {
+static void dbus_array_reply(DBusMessage* msg, DBusConnection* conn, char* array[]) {
     DBusMessage* reply = dbus_message_new_method_return(msg);
     DBusMessageIter args;
 
-    g_index++;
+    bool success = true;
     dbus_message_iter_init_append(reply, &args);
-    if (dbus_message_iter_append_basic(&args, DBUS_TYPE_STRING, &g_server_info[0])
-    &&  dbus_message_iter_append_basic(&args, DBUS_TYPE_STRING, &g_server_info[1])
-    &&  dbus_message_iter_append_basic(&args, DBUS_TYPE_STRING, &g_server_info[2])
-    &&  dbus_message_iter_append_basic(&args, DBUS_TYPE_STRING, &g_server_info[3])
-    &&  dbus_connection_send(conn, reply, &g_index)) {
+    for (int i = 0; array[i] != 0; i++) {
+        if (!dbus_message_iter_append_basic(&args, DBUS_TYPE_STRING, &array[i])) {
+            success = false;
+        }
+    }
+    if (success && dbus_connection_send(conn, reply, &g_index)) {
         dbus_message_unref(reply);
     }
+}
+
+static void getserverinfo(DBusMessage* msg, DBusConnection* conn) {
+    g_index++;
+    dbus_array_reply(msg, conn, g_server_info);
+}
+
+static void getcapabilities(DBusMessage* msg, DBusConnection* conn) {
+    g_index++;
+    dbus_array_reply(msg, conn, g_capabilities);
 }
 
 bool handle_message(DBusMessage* msg, DBusConnection* connection) {
@@ -77,6 +89,11 @@ bool handle_message(DBusMessage* msg, DBusConnection* connection) {
     "org.freedesktop.Notifications", "GetServerInformation")
     ) {
         getserverinfo(msg, connection);
+    } else if (
+    dbus_message_is_method_call(msg,
+    "org.freedesktop.Notifications", "GetCapabilities")
+    ) {
+        getcapabilities(msg, connection);
     }
 
     dbus_message_unref(msg);

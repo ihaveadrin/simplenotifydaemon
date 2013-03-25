@@ -45,6 +45,7 @@ static void print_help(char* path) {
     "\t\t%%a\tthe name of the application sending the notification\n"
     "\t\t%%s\tthe summary of the notification\n"
     "\t\t%%b\tthe body of the notification\n"
+    "\t\t%%i\tthe id of the notification\n"
     ,
     path);
 }

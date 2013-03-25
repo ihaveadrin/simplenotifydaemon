@@ -91,7 +91,13 @@ static void closenotification(DBusMessage* msg) {
         }
         return;
     }
-    list_update(NULL,NULL,NULL,nid,true);
+    if (!list_update(NULL,NULL,NULL,nid,true)) {
+        DBusMessage* reply = dbus_message_new_error(msg,
+        "org.freedesktop.Notifications.NotificationClosed.Error", 0);
+        if (dbus_connection_send(g_conn, reply, NULL)) {
+            dbus_message_unref(reply);
+        }
+    }
 }
 
 bool handle_message(DBusMessage* msg) {

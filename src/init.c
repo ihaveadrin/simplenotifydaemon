@@ -110,7 +110,10 @@ static struct ConfigArray** config_parse(int* arrc, struct option* options, int 
             }
         }
     }
+
     fclose(conf_file);
+    free(line);
+
     *arrc = arr_len;
     return arr;
 }
@@ -140,6 +143,7 @@ static char config_getopt(char c, char** optarg, int arrc, struct ConfigArray** 
 void config_clean() {
     for (int x = 0; x < g_conf_arr_len; x++) {
         free(g_conf_arr[x]->optarg);
+        free(g_conf_arr[x]);
     }
     free(g_conf_arr);
 }

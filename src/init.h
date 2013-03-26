@@ -12,8 +12,11 @@ extern char* g_pending_notify_string;
 extern char* g_no_pending_notify_string;
 extern char* g_seperator;
 
+// Other
+extern struct timespec g_update_interval;
+
 // Functions
 void get_args(int argc, char** argv);
-extern struct timespec g_update_interval;
+void config_clean();
 
 #endif

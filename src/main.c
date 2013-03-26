@@ -41,6 +41,7 @@ int main (int argc, char** argv) {
     // Free alloced memory
     list_destroy();
     format_clean();
+    config_clean();
 
     // Free list
     return success;

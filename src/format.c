@@ -31,9 +31,8 @@ static void make_seperator(char* needle, char* tail) {
     if (needle != tail) {
         g_format_container->array[g_format_container->len] = malloc(sizeof(FormatContainer));
         g_format_container->array[g_format_container->len]->is_seperator = true;
-        g_format_container->array[g_format_container->len]->content.seperator = malloc(sizeof(*tail) * (needle - tail + 1));
         g_format_container->array[g_format_container->len]->content.seperator =
-            strncpy(g_format_container->array[g_format_container->len]->content.seperator, tail, needle - tail);
+            strndup(tail, needle - tail);
         g_format_container->len++;
     }
 }

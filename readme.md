@@ -24,18 +24,46 @@ Options
 -------
 ```
 Options:
-	-h, --help		Show this message
-	-l, --lines=		If set to $LINES, will give an curses-like output in your terminal.
-	-f, --format=		The format to print each notification. See FORMAT
-	-n, --new=		The provided string will be printed after all notifications if there was a new notification added to the queue on this update
-	-p, --pending=		The provided string will be printed before all notifications if there are any notifications on the queue.
-	-r, --no_pending=	The provided string will be printed before all notifications if there are no notifications on the queue.
-	-d, --dzen		Will subtract two lines ('-p' or '-r' and '-n') from the total number of lines provided by '-l', as to keep notifications in the dzen slave window. (If '-pr' or '-n' are included, of course)
-	-u, --update_interval=	Set default update interval for fetching pending notifications, and checking the list for expirations, in milliseconds. Lower will make the list seem more responsive, but will eat more CPU. Defaults to 500ms.
-	-t, --timeout=		Set default notification expiration in milliseconds. Defaults to 5 seconds (5000ms).
+	-h, --help		        Show this message
+	-c, --conf=		        Read settings from alternate config file
+	-l, --lines=		    If set to $LINES, will give an curses-like
+                            output in your terminal.
+	-f, --format=		    The format to print each notification. see
+                            FORMAT
+	-n, --new=		        The provided string will be printed after
+                            all notifications if there was a new
+                            notification added to the queue on this update
+	-p, --pending=		    The provided string will be printed before
+                            all notifications if there are any
+                            notifications on the queue.
+	-r, --no_pending=	    The provided string will be printed before
+                            all notifications if there are no
+                            notifications on the queue.
+	-d, --dzen		        Will subtract two lines ('-p' or '-r' and
+                            '-n') from the total number of lines provided
+                            by '-l', as to keep notifications in the dzen
+                            slave window. (If '-pr' or '-n' are included,
+                            of course)
+	-u, --update_interval=  Set default update interval for fetching
+                            pending notifications, and checking the list
+                            for expirations, in milliseconds. Lower will
+                            make the list seem more responsive, but will
+                            eat more CPU. Defaults to 500ms.
+	-t, --timeout=		    Set default notification expiration in
+                            milliseconds. Defaults to 5 seconds (5000ms).
+
+Configuration File:
+	SiND will look in ~/.sindrc (or the location specified by --conf) for
+a configuration file. These provide default values for the above arguments
+if they are not included when SiND is executed. The configuration file can
+consist of [KEY]=[VALUE] pairs, with KEY cooresponding to the longoptions
+above, seperated by newlines. It can also consist of comments, if the line
+begins with '#', and empty lines (with no other whitespace)
 
 Format:
-	When used with the -f --format= option, you can control the output of each line with a date-like format string
+	When used with the -f --format= option, you can control the output of
+    each line with a date-like format string
+
 	These are the current interpreted sequences:
 		%a	the name of the application sending the notification
 		%s	the summary of the notification

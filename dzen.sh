@@ -27,15 +27,15 @@ font="-*-fixed-medium-*-*-*-12-*-*-*-*-*-*-*"
 dzenbg=black
 
 # The color of slave window text
-dzenfg='#222222'
+dzenfg=white
 
 # The bg of the slave window text, as
 #   well as the bg of the button when
 #   you have pending notifications
-activebgcolor='#aaffdd'
+activebgcolor=darkred
 
 # The color of the notification icon
-notify_color=red
+notify_color=white
 
 # The notification icon (single char)
 notify_icon='!'

@@ -5,6 +5,7 @@ INSTALL = install
 
 PREFIX ?= /usr/local
 BINDIR = $(PREFIX)/bin
+MKDIR = mkdir -p
 
 CFLAGS = -std=gnu99
 
@@ -14,6 +15,8 @@ DEBUG = -g
 SRC = $(wildcard src/*.c)
 OBJ = $(SRC:.c=.o)
 TARGET = sind
+
+all: $(TARGET)
 
 $(TARGET): $(OBJ)
 	$(QUIET) $(CC) $(DEBUG) -o $@ $^ $(LIBS)
@@ -25,5 +28,6 @@ clean:
 	@ rm -f $(OBJ)
 	@ rm -f $(TARGET)
 
-install:
-	$(INSTALL) -d $(TARGET) '$(DESTDIR)/$(BINDIR)'
+install: all
+	$(MKDIR) '$(DESTDIR)/$(BINDIR)'
+	$(INSTALL) $(TARGET) '$(DESTDIR)/$(BINDIR)'

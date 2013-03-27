@@ -39,7 +39,7 @@ Options & Configuring
 All options are configurable as arguments, as well as specified in a configuration file. In the event that an
 option appears in both, the argument takes precedence. Configuration follows the familar .ini style, of
 [key]=[value] pairs, using '#''s as comments. All [key]'s correspond to the long options provided on the
-command line. 
+command line.
 
 SiND will first look in --conf= for a config file, then try $HOME/.sindrc.
 
@@ -82,10 +82,10 @@ SiND will first look in --conf= for a config file, then try $HOME/.sindrc.
 			* the body of the notification
 		* %i
 			* the id of the notification
-		* %A	
+		* %A
 			* if the notification had an APP field, this cooresponds
 			to --app_s, otherwise --no_app_s
-		* %B	
+		* %B
 			* if the notification had a BODY field, this cooresponds
 			to --body_s, otherwise --no_body_s
 
@@ -112,16 +112,4 @@ SiND will first look in --conf= for a config file, then try $HOME/.sindrc.
 			this cooresponds to --pending_s, otherwise
 			--no_pending_s
 	* Note, if --status= is empty or unset, no status bar will be displayed
-
-License
--------
-This software is release under an MIT license.
-
-Copyright (c) 2013 Tyler Thomas Hart
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 

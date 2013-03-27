@@ -3,7 +3,7 @@ LIBS = `pkg-config --libs dbus-1` -L/usr/lib
 INCS = -Isrc/ `pkg-config --cflags dbus-1` -I/usr/include/
 INSTALL = install
 
-PREFIX = /usr/local
+PREFIX ?= /usr/local
 BINDIR = $(PREFIX)/bin
 
 CFLAGS = -std=gnu99
@@ -26,4 +26,4 @@ clean:
 	@ rm -f $(TARGET)
 
 install:
-	$(INSTALL) $(TARGET) '$(DESTDIR)/$(BINDIR)'
+	$(INSTALL) -d $(TARGET) '$(DESTDIR)/$(BINDIR)'

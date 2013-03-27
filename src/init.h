@@ -7,10 +7,21 @@
 extern unsigned long g_sleep_time;
 extern bool g_dzen;
 extern int g_lines;
-extern char* g_new_notify_string;
-extern char* g_pending_notify_string;
-extern char* g_no_pending_notify_string;
-extern char* g_seperator;
+
+extern char* g_default_format;
+extern char* g_default_status;
+extern bool g_status_top;
+struct _FormatStrings {
+	char* new;
+    char* no_new;
+	char* pending;
+	char* no_pending;
+    char* app;
+    char* no_app;
+    char* body;
+    char* no_body;
+};
+extern struct _FormatStrings g_dformat;
 
 // Other
 extern struct timespec g_update_interval;

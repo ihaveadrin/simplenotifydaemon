@@ -34,11 +34,8 @@ dzenfg=white
 #   you have pending notifications
 activebgcolor=darkred
 
-# The color of the notification icon
-notify_color=white
-
-# The notification icon (single char)
-notify_icon='!'
+# What the notification icon looks like
+pending="^bg($activebgcolor) ! ^bg()"
 
 # The position of the button, relative to The
 #   top-left corner of it
@@ -75,9 +72,16 @@ timeout=10000
 lines=3
 
 # The format of each notification (see sind -h)
-userformat='%i -- %a : %s -- %b'
+userformat='%i : %a%A%s%B%b'
+app_s=' : '
+body_s=' : '
 
-
+userstatus="%P
+%N"
+new_s='^uncollapse()'"$border"
+pending_s="^tw()$pending"
+no_pending_s="^tw()
+^collapse()"
 
 ### Generate some vars ######################
 format=\
@@ -94,11 +98,9 @@ pending='^bg('"$activebgcolor"')^fg('"$notify_color"') '\
 
 ### Execute! ################################
 sind -l $(( $lines + 1 )) \
--n '^uncollapse()'"$border" \
--p "^tw()$pending" \
--d -f "$format" \
--r "^tw()
-^collapse()" \
+--app_s="$app_s" --body_s="$body_s" --new_s="$new_s" \
+--pending_s="$pending_s" --no_pending_s="$no_pending_s" \
+-d -f "$format" -s "$userstatus" \
 -u "$updateinterval" -t "$timeout" \
 | dzen2 \
 -l "$lines" -h "$line_height" \

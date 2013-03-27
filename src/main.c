@@ -32,7 +32,7 @@ int main (int argc, char** argv) {
     DBusMessage* msg;
     while (g_do_main_loop) {
         // Check list for needed updates
-        list_walk();
+        if (!list_walk()) break;
 
         // Get messages
         dbus_connection_read_write(g_conn, 0); //Non-blocking
@@ -66,7 +66,8 @@ int main (int argc, char** argv) {
 
     // Free alloced memory
     list_destroy();
-    format_clean();
+    format_clean(g_format_container);
+    format_clean(g_status_container);
     config_clean();
 
     // Free list

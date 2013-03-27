@@ -3,11 +3,13 @@
 
 #include "format.h"
 
-char* g_default_format = "%a : %s : %b";
-
-FormatContainer format_container = { 0, 0, 0, false, false, false };
+/* Defaults */
+FormatContainer format_container = { 0, 0, 0, 0 };
 FormatContainer* g_format_container = &format_container;
+FormatContainer status_container = { 0, 0, 0, 0 };
+FormatContainer* g_status_container = &status_container;
 
+/* Functions */
 static int count_specs(char* string) {
     // Count specifiers
     int count = 1;
@@ -27,30 +29,30 @@ static int count_specs(char* string) {
     return count;
 }
 
-static void make_seperator(char* needle, char* tail) {
+static void make_seperator(char* needle, char* tail, FormatContainer* format) {
     if (needle != tail) {
-        g_format_container->array[g_format_container->len] = malloc(sizeof(FormatContainer));
-        g_format_container->array[g_format_container->len]->is_seperator = true;
-        g_format_container->array[g_format_container->len]->content.seperator =
+        format->array[format->len] = malloc(sizeof(FormatContainer));
+        format->array[format->len]->is_seperator = true;
+        format->array[format->len]->content.seperator =
             strndup(tail, needle - tail);
-        g_format_container->len++;
+        format->len++;
     }
 }
 
-#define SPECASE(X,Y,Z) \
+#define SPECASE(X,Z) \
 case X : \
-    if (!( Y )) { \
-        g_format_container->array[g_format_container->len]->content.specifier = Z ; \
-        Y = true; \
+    if (!( format->has & Z )) { \
+        format->array[format->len]->content.specifier = Z ; \
+        format->has |= Z; \
     } else { \
         return false; \
     } \
     break;
 
-bool make_format(char* string) {
-    int count = count_specs(string); 
-    g_format_container->min_size = sizeof(string[0]) * strlen(string);
-    g_format_container->array = malloc(sizeof(OutputFormat*) * count); 
+bool make_format(char* string, FormatContainer* format) {
+    int count = count_specs(string);
+    format->min_size = sizeof(string[0]) * strlen(string);
+    format->array = malloc(sizeof(OutputFormat*) * count);
 
     char* needle = string;
     char* tail = needle;
@@ -60,22 +62,28 @@ bool make_format(char* string) {
         if (*needle == '%') {
             if ((*needle) + 1) {
                 // Copy everything preceding as the seperator
-                make_seperator(needle, tail);
+                make_seperator(needle, tail, format);
 
                 // Create format specifier element
-                g_format_container->array[g_format_container->len] = malloc(sizeof(*g_format_container->array[0]));;
-                g_format_container->array[g_format_container->len]->is_seperator = false;
+                format->array[format->len] = malloc(sizeof(*format->array[0]));;
+                format->array[format->len]->is_seperator = false;
                 needle++;
                 switch (*needle) {
-                    SPECASE('a',g_format_container->app,SEP_APP)
-                    SPECASE('s',g_format_container->sum,SEP_SUMMARY)
-                    SPECASE('b',g_format_container->bod,SEP_BODY)
-                    SPECASE('i',g_format_container->id,SEP_ID)
+                    SPECASE('a',FORM_LINE_APP)
+                    SPECASE('s',FORM_LINE_SUM)
+                    SPECASE('b',FORM_LINE_BOD)
+                    SPECASE('i',FORM_LINE_ID)
+                    SPECASE('A',FORM_LINE_IF_APP)
+                    SPECASE('B',FORM_LINE_IF_BOD)
+
+                    SPECASE('N',FORM_STAT_NEW)
+                    SPECASE('P',FORM_STAT_PEND)
+                    SPECASE('c',FORM_STAT_NUM)
                     default:
-                        free(g_format_container->array[g_format_container->len]);
+                        free(format->array[format->len]);
                         return false;
                 }
-                g_format_container->len++;
+                format->len++;
                 needle++;
                 tail = needle;
             } else {
@@ -85,17 +93,23 @@ bool make_format(char* string) {
         }
         needle++;
     }
-    make_seperator(needle, tail);
+    make_seperator(needle, tail, format);
+    if ((   (format == g_format_container)
+            &&  (format->has & FORM_STAT_NEW & FORM_STAT_PEND & FORM_STAT_NUM))
+        ||  (format->has & FORM_LINE_APP & FORM_LINE_SUM & FORM_LINE_BOD
+            & FORM_LINE_ID & FORM_LINE_IF_APP & FORM_LINE_IF_BOD) ) {
+        return false;
+    }
     return true;
 }
 #undef SPECASE
 
-void format_clean() {
-    for (int x = 0; x < g_format_container->len; x++) {
-        if (g_format_container->array[x]->is_seperator) {
-            free(g_format_container->array[x]->content.seperator);
+void format_clean(FormatContainer* format) {
+    for (int x = 0; x < format->len; x++) {
+        if (format->array[x]->is_seperator) {
+            free(format->array[x]->content.seperator);
         }
-        free(g_format_container->array[x]);
+        free(format->array[x]);
     }
-    free(g_format_container->array);
+    free(format->array);
 }
